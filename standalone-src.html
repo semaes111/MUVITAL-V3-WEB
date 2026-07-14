@@ -326,8 +326,9 @@
   </section>
 
   <!-- ══════════ ESPACIO ══════════ -->
-  <section id="espacio" data-screen-label="Espacio" style="background:#D9D4C8;padding:clamp(96px,13vw,160px) 0 clamp(72px,9vw,120px);scroll-margin-top:76px;content-visibility:auto;contain-intrinsic-size:1px 900px;">
-    <div style="max-width:1280px;margin:0 auto;padding:0 clamp(20px,4vw,64px);margin-bottom:clamp(40px,5vw,56px);">
+  <section id="espacio" data-screen-label="Espacio" data-hwrap="true" style="background:#D9D4C8;scroll-margin-top:76px;">
+    <div data-hsticky="true" style="position:sticky;top:0;min-height:100svh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;box-sizing:border-box;padding:96px 0 32px;">
+    <div style="width:100%;max-width:1280px;margin:0 auto;padding:0 clamp(20px,4vw,64px);margin-bottom:clamp(32px,4vw,48px);box-sizing:border-box;">
       <div data-reveal="0">
         <p style="margin:0 0 16px;font-size:13px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:#A8862F;">El espacio</p>
         <h2 style="margin:0;font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(2rem,1rem + 3.5vw,3.75rem);line-height:1.1;letter-spacing:-0.01em;color:#214C53;max-width:15ch;text-wrap:balance;">Arquitectura para el rendimiento.</h2>
@@ -374,6 +375,7 @@
         </div>
         <a href="https://maps.google.com/?q=Avenida%20Reino%20de%20Espa%C3%B1a%2078%2C%2004740%20Roquetas%20de%20Mar%2C%20Almer%C3%ADa" target="_blank" rel="noopener noreferrer" style="margin-top:20px;display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:#214C53;text-decoration:none;transition:color 0.2s ease;" style-hover="color:#2E888D;">Cómo llegar <span aria-hidden="true">→</span></a>
       </div>
+    </div>
     </div>
   </section>
 
@@ -787,6 +789,7 @@ class Component extends DCLogic {
           this.setState({ atTop: atTop });
         }
         this._updateScrub();
+        this._updateEspacio();
         this._raf = null;
       });
     };
@@ -797,6 +800,8 @@ class Component extends DCLogic {
       if (m !== this.state.isMobile) {
         this.setState({ isMobile: m, menuOpen: false });
       }
+      this._sizeEspacio();
+      this._updateEspacio();
     };
     window.addEventListener("resize", this._onResize);
 
@@ -811,9 +816,36 @@ class Component extends DCLogic {
     this._noMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     this._scrubEl = document.querySelector("[data-scrub]");
     this._setupReveals();
+    this._setupEspacio();
     this._setupDrag();
     this._setupPhoneTilt();
     this._updateScrub();
+    this._updateEspacio();
+  }
+
+  _setupEspacio() {
+    this._hwrap = document.querySelector("[data-hwrap]");
+    this._htrack = document.querySelector("[data-hscroll]");
+    this._pinActive = false;
+    if (!this._hwrap || !this._htrack || this._noMotion) return;
+    this._pinActive = true;
+    this._htrack.style.scrollSnapType = "none";
+    this._htrack.style.overflowX = "hidden";
+    this._htrack.style.cursor = "default";
+    this._sizeEspacio();
+  }
+
+  _sizeEspacio() {
+    if (!this._pinActive) return;
+    this._hdist = Math.max(0, this._htrack.scrollWidth - this._htrack.clientWidth);
+    this._hwrap.style.height = (window.innerHeight + this._hdist) + "px";
+  }
+
+  _updateEspacio() {
+    if (!this._pinActive || !this._hdist) return;
+    const r = this._hwrap.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, -r.top / this._hdist));
+    this._htrack.scrollLeft = p * this._hdist;
   }
 
   _updateScrub() {
@@ -877,6 +909,7 @@ class Component extends DCLogic {
   }
 
   _setupDrag() {
+    if (this._pinActive) return; // el scroll vertical ya dirige la galería
     const track = document.querySelector("[data-hscroll]");
     if (!track) return;
     this._dragTrack = track;
