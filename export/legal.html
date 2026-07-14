@@ -11,7 +11,9 @@ window.__resources = {
   "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js": "vendor/babel.min.js"
 };
 </script>
-<script src="./support.js"></script>
+<link rel="preload" as="script" href="vendor/react.production.min.js">
+<link rel="preload" as="script" href="vendor/react-dom.production.min.js">
+<script src="./support.js" defer></script>
 </head>
 <body>
 <x-dc>
